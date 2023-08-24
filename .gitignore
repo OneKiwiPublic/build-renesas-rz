@@ -1,4 +1,5 @@
 board.ini
+out_*/
 uboot-renesas-rz/
 atf-renesas-rz/
 gcc-arm-10.2-2020.11-x86_64-aarch64-none-elf/

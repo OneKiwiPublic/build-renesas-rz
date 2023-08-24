@@ -2,19 +2,19 @@
 
 ROOTDIR=`pwd`
 UBOOT_DIR=uboot-renesas-rz
-export KBUILD_OUTPUT=${ROOTDIR}/${UBOOT_DIR}/build
-
-NPROC=2
-if [ "$(which nproc)" != "" ] ; then  # make sure nproc is installed
-    NPROC=$(nproc)
-fi
-BUILD_THREADS=$(expr $NPROC + $NPROC)
+#SETTINGS_FILE=board.ini
+#export KBUILD_OUTPUT=${ROOTDIR}/${UBOOT_DIR}/build
 
 build_uboot(){
+    echo "defconfig: $UBOOT_DEFCONFIG $UBOOT_DEVICE_TREE"
     cd $UBOOT_DIR
+    export KBUILD_OUTPUT=./build
     make $UBOOT_DEFCONFIG
-    make DEVICE_TREE=$UBOOT_DEVICE_TREE -j$BUILD_THREADS
+    echo "make DEVICE_TREE=$UBOOT_DEVICE_TREE -j$(nproc)"
+    make DEVICE_TREE=$UBOOT_DEVICE_TREE -j$(nproc)
     cd ../
+    cp -v $UBOOT_DIR/build/u-boot.bin $OUTPUT_BUILD
+    cp -v $UBOOT_DIR/build/u-boot.srec $OUTPUT_BUILD
 }
 
 make_menuconfig_uboot(){
@@ -22,9 +22,25 @@ make_menuconfig_uboot(){
     make $UBOOT_DEFCONFIG
     make menuconfig
     make savedefconfig
-    echo "output build/defconfig"
+    echo "output ${UBOOT_DIR}/build/defconfig"
     cd ../
 }
+
+read_setting() {
+    if [ -e "$SETTINGS_FILE" ] ; then
+        source "$SETTINGS_FILE"
+    else
+        echo -e "\nERROR: Settings file ($SETTINGS_FILE) not found."
+        exit
+    fi
+}
+
+### Start ###
+
+source ./build-common.sh
+read_setting
+build_uboot
+#make_menuconfig_uboot
 
 #make solidrun-rzg2lc_defconfig
 #make menuconfig
